@@ -1,7 +1,8 @@
 from flask_restful import Api
 from generic_catalog_management.api_management import ApiManagement
 from generic_catalog_management.catalog_management import CatalogItemCondition, Catalogs, CatalogGenres, CatalogItemAudienceRating
-from generic_catalog_management.catalog_management import CatalogItemFormat, CatalogItemRegion, CatalogType
+from generic_catalog_management.catalog_management import CatalogItemFormat, CatalogItemRegion, CatalogType, Developer, GamePlatform
+from generic_catalog_management.catalog_management import Publisher, CatalogItem, GameCatalogItem
 
 
 def create_api(app):
@@ -19,4 +20,14 @@ def create_api(app):
                      '/api/v1/<tenant_key>/catalogitemregions')
     api.add_resource(CatalogType,
                      '/api/v1/<tenant_key>/catalogtypes')
+    api.add_resource(Developer,
+                     '/api/v1/<tenant_key>/developers')
+    api.add_resource(GamePlatform,
+                     '/api/v1/<tenant_key>/gameplatforms')
+    api.add_resource(Publisher,
+                     '/api/v1/<tenant_key>/publishers')
+    api.add_resource(CatalogItem,
+                     '/api/v1/<tenant_key>/catalogitems')
+    api.add_resource(GameCatalogItem,
+                     '/api/v1/<tenant_key>/gamecatalogitems')
     return api
