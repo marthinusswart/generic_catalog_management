@@ -41,7 +41,7 @@ class CatalogGenres(Resource):
 
         new_catalog_genre = CatalogGenre()
         new_catalog_genre.name = new_catalog_genre_json['name']
-        new_catalog_genre.description = new_catalog_genre_json['description']
+        new_catalog_genre.description = new_catalog_genre_json.get('description')
         new_catalog_genre.tenant_key = tenant_key
         db.session.add(new_catalog_genre)
         db.session.commit()
@@ -254,13 +254,13 @@ class CatalogItem(Resource):
 
         new_catalog_item = CatalogItem()
         new_catalog_item.title = new_catalog_item_json['title']
-        new_catalog_item.description = new_catalog_item_json['description']
-        new_catalog_item.catalog_id = new_catalog_item_json['catalog_id']
-        new_catalog_item.image_file_id = new_catalog_item_json['image_file_id']
-        new_catalog_item.purchase_price = new_catalog_item_json['purchase_price']
-        new_catalog_item.sort_title = new_catalog_item_json['sort_title']
-        new_catalog_item.condition_id = new_catalog_item_json['condition_id']
-        new_catalog_item.vendor_id = new_catalog_item_json['vendor_id']
+        new_catalog_item.description = new_catalog_item_json.get('description')
+        new_catalog_item.catalog_id = new_catalog_item_json.get('catalog_id')
+        new_catalog_item.image_file_id = new_catalog_item_json.get('image_file_id')
+        new_catalog_item.purchase_price = new_catalog_item_json.get('purchase_price')
+        new_catalog_item.sort_title = new_catalog_item_json.get('sort_title')
+        new_catalog_item.condition_id = new_catalog_item_json.get('condition_id')
+        new_catalog_item.vendor_id = new_catalog_item_json.get('vendor_id')
         new_catalog_item.tenant_key = tenant_key
         db.session.add(new_catalog_item)
         db.session.commit()
@@ -285,25 +285,34 @@ class GameCatalogItem(Resource):
             new_game_catalog_item_json['release_date'], '%Y-%m-%d %H:%M:%S')
 
         new_game_catalog_item = GameCatalogItem()
-        new_game_catalog_item.catalog_item_id = new_game_catalog_item_json.get(
-            'catalog_item_id')
-        new_game_catalog_item.game_platform_id = new_game_catalog_item_json.get(
-            'game_platform_id')
+        new_game_catalog_item.catalog_item_id = new_game_catalog_item_json.get('catalog_item_id')
+        new_game_catalog_item.game_platform_id = new_game_catalog_item_json.get('game_platform_id')
         new_game_catalog_item.release_date = cdate
-        new_game_catalog_item.format_type_id = new_game_catalog_item_json.get(
-            'format_type_id')
-        new_game_catalog_item.region_id = new_game_catalog_item_json.get(
-            'region_id')
+        new_game_catalog_item.format_type_id = new_game_catalog_item_json.get('format_type_id')
+        new_game_catalog_item.region_id = new_game_catalog_item_json.get('region_id')
         new_game_catalog_item.series = new_game_catalog_item_json.get('series')
-        new_game_catalog_item.audience_rating_id = new_game_catalog_item_json.get(
-            'audience_rating_id')
-        new_game_catalog_item.publisher_id = new_game_catalog_item_json.get(
-            'publisher_id')
-        new_game_catalog_item.developer_id = new_game_catalog_item_json.get(
-            'developer_id')
-        new_game_catalog_item.igdb_id = new_game_catalog_item_json.get(
-            'igdb_id')
+        new_game_catalog_item.audience_rating_id = new_game_catalog_item_json.get('audience_rating_id')
+        new_game_catalog_item.publisher_id = new_game_catalog_item_json.get('publisher_id')
+        new_game_catalog_item.developer_id = new_game_catalog_item_json.get('developer_id')
+        new_game_catalog_item.igdb_id = new_game_catalog_item_json.get('igdb_id')
         new_game_catalog_item.tenant_key = tenant_key
         db.session.add(new_game_catalog_item)
         db.session.commit()
         return {'result': 'Game Catalog Item created', 'JSON received': new_game_catalog_item_json}
+
+class Games(Resource):
+    def get(self, tenant_key):        
+        from . import db
+        from generic_catalog_management.models.json_models import GameItem        
+        
+        with db.engine.connect() as con:
+            stmt = f'select * from games_view where tenant_key=\'{tenant_key}\''
+            game_item = GameItem()
+            result = []
+            for row in con.execute(stmt):
+                #print(f'{row.series} {row.title}')                
+                #print(row)                
+                game_item_json = game_item.as_json(row)                
+                result.insert(0, game_item_json)
+        
+        return jsonify(result)        
