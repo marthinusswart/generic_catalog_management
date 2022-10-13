@@ -122,6 +122,8 @@ class Developer(db.Model):
     description = db.Column(db.String(150))
     tenant_key = db.Column(db.String(100))
 
+    games = db.relationship("GameCatalogItem")
+
     def as_json(self):
         return {
             'id': self.id,
@@ -178,6 +180,9 @@ class CatalogItem(db.Model):
     condition_id = db.Column(db.Integer)
     vendor_id = db.Column(db.Integer)
 
+    # one-to-many collection
+    child_gamecatalogitem = db.relationship("GameCatalogItem", back_populates="parent_catalogitem")
+
     def as_json(self):
         return {
             'id': self.id,
@@ -196,19 +201,23 @@ class CatalogItem(db.Model):
 class GameCatalogItem(db.Model):
     __tablename__ = 'generic_game_catalog_item'
     id = db.Column(db.Integer, primary_key=True)
-    catalog_item_id = db.Column(db.Integer)
+    catalog_item_id = db.Column(db.Integer, db.ForeignKey("generic_catalog_item.id"))
     tenant_key = db.Column(db.String(100))
     series = db.Column(db.String(150))
-    developer_id = db.Column(db.Integer)
-    publisher_id = db.Column(db.Integer)
-    audience_rating_id = db.Column(db.Integer)
-    region_id = db.Column(db.Integer)
-    format_type_id = db.Column(db.Integer)
-    game_platform_id = db.Column(db.Integer)
+    developer_id = db.Column(db.Integer, db.ForeignKey("generic_developer.id"))
+    publisher_id = db.Column(db.Integer, db.ForeignKey("generic_publisher.id"))
+    audience_rating_id = db.Column(db.Integer, db.ForeignKey("generic_catalog_item_audience_rating.id"))
+    region_id = db.Column(db.Integer, db.ForeignKey("generic_catalog_item_region.id"))
+    format_type_id = db.Column(db.Integer, db.ForeignKey("generic_catalog_item_format.id"))
+    game_platform_id = db.Column(db.Integer, db.ForeignKey("generic_game_platform.id"))
     release_date = db.Column(db.DateTime)
-    igdb_id = db.Column(db.Integer)
+    igdb_id = db.Column(db.Integer)    
+
+    # many-to-one scalar
+    parent_catalogitem = db.relationship("CatalogItem", back_populates="child_gamecatalogitem")    
 
     def as_json(self):
+        from datetime import datetime
         return {
             'id': self.id,
             'catalog_item_id': self.catalog_item_id,
@@ -219,7 +228,9 @@ class GameCatalogItem(db.Model):
             'region_id': self.region_id,
             'format_type_id': self.format_type_id,
             'game_platform_id': self.game_platform_id,
-            'release_date': self.release_date,
+            'release_date': datetime.strftime(self.release_date, '%Y-%m-%d'),
             'igdb_id': self.igdb_id,
             'tenant_key': self.tenant_key
         }
+
+    
